@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 
 var User = require('../models/user');
+var Role = require('../models/role');
+var Permission = require('../models/permission');
 var jwt = require('jsonwebtoken');
 
 var bcrypt = require('bcrypt');
@@ -129,12 +131,25 @@ router.delete('/:userId', (req, res, next) => {
 router.get('/', (req, res) => {
     User
         .find()
-        .populate('post')
+        .populate({ path: 'user_role', populate: { path: 'permissions' } })
         .exec((err, users) => {
             if (err) res.status(500).json(err)
-            res.status(200).json(users)
+            res.status(200).json({
+                message: 'sucesss',
+                users: users.map(user => {
+                    return {
+                        user_id: user._id,
+                        user_email: user.email,
+                        user_password: user.password,
+                        user_role: user.user_role.name_role,
+                        user_permissions: user.user_role.permissions.map(per => per.action_name)
+                    }
+                })
+            })
         })
 })
+
+
 
 
 

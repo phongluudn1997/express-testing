@@ -10,6 +10,11 @@ const userSchema = mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    user_role: {
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Role',
+        default: '5cb2d26f7dd8dd437cdbfe32'
     }
 })
 

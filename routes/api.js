@@ -14,5 +14,7 @@ mongoose.set('useCreateIndex', true);
 
 router.use('/users', require('./userAPI'))
 router.use('/products', require('./productAPI'))
+router.use('/permissions', require('./permissionAPI'))
+router.use('/roles', require('./roleAPI'))
 
 module.exports = router;
