@@ -3,7 +3,7 @@ var router = express.Router();
 var Product = require('../models/product');
 var moment = require('moment');
 const checkAuth = require('../middleware/checkAuth');
-const define = require('../../lib/define');
+const define = require('../lib/define');
 
 // Setting file storage for uploading images
 var multer = require('multer');
