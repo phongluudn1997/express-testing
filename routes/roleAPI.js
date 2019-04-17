@@ -22,6 +22,22 @@ router.post('/', (req, res) => {
     })
 })
 
+router.put('/:_id', (req, res) => {
+    Role.findOneAndUpdate({_id: req.params._id}, {permissions: req.body.permissions}, (err, doc) => {
+        if(err){
+            res.status(500).json({
+                messgage: "error",
+                err: err
+            })
+        } else{
+            res.status(200).json({
+                message: 'success',
+                Role: doc
+            })
+        }
+    })
+})
+
 router.get('/', (req, res) => {
     Role.
         find().
@@ -38,12 +54,28 @@ router.get('/', (req, res) => {
                     roles: result.map(role => {
                         return {
                             name : role.name_role,
+                            _id: role._id,
                             permissions: role.permissions.map(permission => permission.action_name)
                         }
                     })
                 })
             }
         })
+})
+
+router.delete('/:_id', (req, res) => {
+    Role.findOneAndDelete({_id: req.params._id}, (err, result) =>{
+        if(err){
+            res.status(500).json({
+                message: 'error',
+                error: err
+            })
+        } else {
+            res.status(200).json({
+                message: 'success - Deleted successfully'
+            })
+        }
+    })
 })
 
 module.exports = router;

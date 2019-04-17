@@ -53,13 +53,20 @@ router.post('/register', (req, res, next) => {
                 } else {
                     const user = new User({
                         email: req.body.email,
-                        password: hash
+                        password: hash,
+                        user_role: req.body.user_role
                     });
                     user.save().then(result => {
                         console.log(result)
                         res.status(201).json({
                             message: "User created",
-                            User: result
+                            result: result,
+                            User: {
+                                _id: result._id,
+                                email: result.email,
+                                password: result.password,
+                                user_role: result.user_role
+                            }
                         })
                     }).catch(err => {
                         console.log(err)
