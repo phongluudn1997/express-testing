@@ -6,7 +6,7 @@ var Role = require('../models/role');
 var Permission = require('../models/permission');
 var jwt = require('jsonwebtoken');
 
-var bcrypt = require('bcryptjs');
+var bcrypt = require('bcrypt');
 
 // middleware verify token
 function checkToken(req, res, next) {

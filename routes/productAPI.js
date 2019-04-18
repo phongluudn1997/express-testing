@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var Product = require('../models/product');
 var moment = require('moment');
-const checkAuth = require('../middleware/checkAuth');
+const checkToken = require('../middleware/checkToken');
 const define = require('../lib/define');
 
 // Setting file storage for uploading images
@@ -55,7 +55,7 @@ router.get('/', (req, res, next) => {
 })
 
 // Post a product
-router.post('/', checkAuth, upload.array('images', define.limitImageProduct), (req, res, next) => {
+router.post('/', checkToken, upload.array('images', define.limitImageProduct), (req, res, next) => {
     var arrImagePaths = [];
     if (req.files) {
         req.files.forEach((item) => {
@@ -118,7 +118,7 @@ router.get('/:id', (req, res, next) => {
 })
 
 // Update product by id
-router.put('/:id', checkAuth, upload.array('images'), (req, res, next) => {
+router.put('/:id', checkToken, upload.array('images'), (req, res, next) => {
     updateObject = {};
     arrImagePaths = [];
     if (req.files) {
@@ -159,7 +159,7 @@ router.put('/:id', checkAuth, upload.array('images'), (req, res, next) => {
 })
 
 // Delete product by id
-router.delete('/:_id', checkAuth, (req, res, next) => {
+router.delete('/:_id', checkToken, (req, res, next) => {
     Product.findOneAndDelete({ _id: req.params._id }, (err, result) => {
         if (req.decoded.userId != result.user) {
             res.status(404).json({
