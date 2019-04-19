@@ -3,6 +3,7 @@ var router = express.Router();
 var Product = require('../models/product');
 var moment = require('moment');
 const checkToken = require('../middleware/checkToken');
+const checkAuth = require('../middleware/checkAuth');
 const define = require('../lib/define');
 
 // Setting file storage for uploading images
@@ -95,6 +96,20 @@ router.post('/', checkToken, upload.array('images', define.limitImageProduct), (
 })
 
 
+router.get('/luu',checkToken,(req, res) => {
+    // if(checkAuth(req.decoded.userId,"1") == true){
+    //     res.json({
+    //         message: 'Auth success roi ne'
+    //     })
+    // } else {
+    //     res.json({
+    //         messgage: 'false'
+    //     })
+    // }
+    console.log(checkAuth(req.decoded.userId, "1"))
+   
+})
+
 // Get product by id
 router.get('/:id', (req, res, next) => {
     const id = req.params.id;
@@ -182,6 +197,8 @@ router.delete('/:_id', checkToken, (req, res, next) => {
         }
     })
 })
+
+
 
 
 module.exports = router;
