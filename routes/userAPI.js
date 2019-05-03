@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
+var Cart = require('../models/cart');
 var User = require('../models/user');
 var Role = require('../models/role');
 var Permission = require('../models/permission');
@@ -56,7 +57,23 @@ router.post('/register', (req, res, next) => {
                         password: hash,
                         user_role: req.body.user_role
                     });
+
                     user.save().then(result => {
+                        // Check if user is customer, then create a cart
+                        if (result.user_role == '5cb72bf9edf6ea1b7cee748a') {
+                            const cart = new Cart({
+                                user: result._id,
+                                items: []
+                            })
+                            cart.save().then(result => {
+                                console.log('create cart successfully')
+                            }).catch(err => {
+                                res.status(500).json({
+                                    message: 'error',
+                                    error: err
+                                })
+                            });
+                        }
                         console.log(result)
                         res.status(201).json({
                             message: "User created",

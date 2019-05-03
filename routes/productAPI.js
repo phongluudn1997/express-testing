@@ -55,60 +55,77 @@ router.get('/', (req, res, next) => {
     })
 })
 
-// Post a product
-router.post('/', checkToken, upload.array('images', define.limitImageProduct), (req, res, next) => {
-    var arrImagePaths = [];
-    if (req.files) {
-        req.files.forEach((item) => {
-            arrImagePaths.push(item.path)
+// Post a product - check if login - check if permission
+router.post('/', checkToken, upload.array('images', define.limitImageProduct), async (req, res, next) => {
+    if (await checkAuth(req.decoded.userId, define.CREATE_PRODUCT)) {
+        var arrImagePaths = [];
+        if (req.files) {
+            req.files.forEach((item) => {
+                arrImagePaths.push(item.path)
+            })
+        }
+        const product = new Product({
+            user: req.decoded.userId,
+            name: req.body.name,
+            description: req.body.description,
+            price: req.body.price,
+            created_at: Date.now(),
+            images: arrImagePaths
+        })
+        product.save().then(result => {
+            console.log(result);
+            res.status(200).json({
+                message: "Created product successfully",
+                'Produce created': {
+                    _id: result._id,
+                    User: result.user,
+                    name: result.name,
+                    description: result.description,
+                    price: result.price,
+                    images: result.images,
+                    created_at: moment(result.created_at).format("MMMM Do YYYY, h:mm:ss a")
+                }
+            })
+        }).catch(err => {
+            console.log(err);
+            res.status(500).json({
+                success: false,
+                error: err
+            })
         })
     }
-    const product = new Product({
-        user: req.decoded.userId,
-        name: req.body.name,
-        description: req.body.description,
-        price: req.body.price,
-        created_at: Date.now(),
-        images: arrImagePaths
-    })
-    product.save().then(result => {
-        console.log(result);
-        res.status(200).json({
-            message: "Created product successfully",
-            'Produce created': {
-                _id: result._id,
-                User: result.user,
-                name: result.name,
-                description: result.description,
-                price: result.price,
-                images: result.images,
-                created_at: moment(result.created_at).format("MMMM Do YYYY, h:mm:ss a")
-            }
+    else{
+        res.json({
+            message: 'Auth failed'
         })
-    }).catch(err => {
-        console.log(err);
-        res.status(500).json({
-            success: false,
-            error: err
-        })
-    })
-
+    }
 })
 
-
-router.get('/luu',checkToken,(req, res) => {
-    // if(checkAuth(req.decoded.userId,"1") == true){
-    //     res.json({
-    //         message: 'Auth success roi ne'
-    //     })
-    // } else {
-    //     res.json({
-    //         messgage: 'false'
-    //     })
-    // }
-    console.log(checkAuth(req.decoded.userId, "1"))
-   
+router.get('/luu', checkToken, async (req, res) => {
+    try {
+        if (await checkAuth(req.decoded.userId, define.UPDATE_PRODUCT)) {
+            console.log('OK -> Continue')
+        }
+        else {
+            console.log('Auth failed')
+        }
+    } catch (e) {
+        console.error(e)
+    }
 })
+
+// router.get('/luu',checkToken,(req, res) => {
+//     checkAuth(req.decoded.userId, "0", function(err, result){
+//         if(err){
+//             console.log(err)
+//         }
+//         else if(!result){
+//             console.log(result)
+//         } else {
+//             console.log(result)
+//         }
+//     })
+// })
 
 // Get product by id
 router.get('/:id', (req, res, next) => {
@@ -178,7 +195,7 @@ router.delete('/:_id', checkToken, (req, res, next) => {
     Product.findOneAndDelete({ _id: req.params._id }, (err, result) => {
         if (req.decoded.userId != result.user) {
             res.status(404).json({
-                success: false, 
+                success: false,
                 message: 'Auth failed'
             })
         }

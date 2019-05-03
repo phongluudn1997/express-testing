@@ -16,5 +16,6 @@ router.use('/users', require('./userAPI'))
 router.use('/products', require('./productAPI'))
 router.use('/permissions', require('./permissionAPI'))
 router.use('/roles', require('./roleAPI'))
-
+router.use('/orders', require('./orderAPI'))
+router.use('/cart', require('./cartAPI'))
 module.exports = router;
