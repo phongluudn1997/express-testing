@@ -31,29 +31,40 @@ const upload = multer({
     fileFilter: fileFilter
 })
 
-// Get all products
-router.get('/', (req, res, next) => {
-    Product.find().exec().then(docs => {
+// Get products by Category
+router.get('/category/:_idCat', (req, res, next) => {
+    Product
+    .find({category: req.params['_idCat']})
+    .populate('category')
+    .exec()
+    .then(docs => {
         const response = {
+            success: true,
             count: docs.length,
             products: docs.map(doc => {
                 return {
-                    user: doc.user,
+                   // user: doc.user,
                     _id: doc._id,
                     name: doc.name,
-                    price: doc.price,
+                    category: doc.category.name,
+                    price: doc.price + 'đ',
+                   // quantity: doc.quantity,
+                   // description: doc.description,
                     created_at: moment(doc.created_at).format("dddd"),
-                    images: doc.images
+                    image: `http://localhost:3000/${doc.images[0]}`
                 }
             })
         }
         res.status(200).json(response)
     }).catch(err => {
-        res.status(500).json({
-            error: err
+        res.status(200).json({
+            success: false,
+            message: err
         })
     })
 })
+
+
 
 // Post a product - check if login - check if permission
 router.post('/', checkToken, upload.array('images', define.limitImageProduct), async (req, res, next) => {
@@ -66,9 +77,11 @@ router.post('/', checkToken, upload.array('images', define.limitImageProduct), a
         }
         const product = new Product({
             user: req.decoded.userId,
+            category: req.body.category,
             name: req.body.name,
-            description: req.body.description,
             price: req.body.price,
+            quantity: req.body.quantity,
+            description: req.body.description,
             created_at: Date.now(),
             images: arrImagePaths
         })
@@ -79,9 +92,11 @@ router.post('/', checkToken, upload.array('images', define.limitImageProduct), a
                 'Produce created': {
                     _id: result._id,
                     User: result.user,
+                    category: result.category,
                     name: result.name,
-                    description: result.description,
+                    quantity: result.quantity,
                     price: result.price,
+                    description: result.description,                
                     images: result.images,
                     created_at: moment(result.created_at).format("MMMM Do YYYY, h:mm:ss a")
                 }
@@ -128,25 +143,32 @@ router.get('/luu', checkToken, async (req, res) => {
 // })
 
 // Get product by id
-router.get('/:id', (req, res, next) => {
-    const id = req.params.id;
-    Product.findOne({ _id: id }).populate('user').exec((err, result) => {
-        if (err) res.status(500).json({ err })
-        else {
-            if (result != null) {
-                res.status(500).json({
-                    success: true,
-                    product: result
-                })
-            }
-            else {
-                res.status(404).json({
-                    success: false,
-                    message: 'No product with that _id'
-                })
-            }
-        }
+router.get('/:_id', (req, res, next) => {
+    const _id = req.params._id;
+    Product
+    .findOne({ _id: _id })
+    .populate('user')
+    .populate('category')
+    .exec()
+    .then(product => {
+        res.json({
+            success: true,
+            name: product.name,
+            price:  new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'VND' }).format(product.price),
+            images: product.images.map(image => 'http://localhost:3000/'+image),
+            quantity: product.quantity,
+            category: product.category.name,
+            user_name: product.user.email,
+            description: product.description
+        })
     })
+    .catch(err => {
+        res.json({
+            success: false,
+            message: 'No Product'
+        })
+    });
+    
 })
 
 // Update product by id

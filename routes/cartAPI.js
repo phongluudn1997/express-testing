@@ -43,24 +43,6 @@ router.post('/add', checkToken, (req, res) => {
 // Get Cart with User Id 
 router.get('/', checkToken, (req, res) => {
     let userId = req.decoded.userId;
-    // Cart.findOne({ user: userId }, (err, cart) => {
-    //     if (err) {
-    //         res.status(500).json({
-    //             message: 'error',
-    //             error: err
-    //         })
-    //     } else if (cart == null) {
-    //         res.status(400).json({
-    //             message: 'error',
-    //             error: 'No Auth'
-    //         })
-    //     } else {
-    //         res.status(200).json({
-    //             message: 'success',
-    //             cart: cart
-    //         })
-    //     }
-    // })
     Cart
         .findOne({ user: userId })
         .populate('user')
@@ -68,9 +50,9 @@ router.get('/', checkToken, (req, res) => {
         .exec()
         .then(cart => {
             if (cart == null) {
-                res.status(400).json({
-                    message: 'error',
-                    error: 'No Auth'
+                res.status(200).json({
+                    success: false,
+                    message: 'Cart have not been created yet'
                 })
             }
             else {
@@ -86,23 +68,123 @@ router.get('/', checkToken, (req, res) => {
                             return {
                                 _id: item.product._id,
                                 name: item.product.name,
-                                image: item.product.images[0],
+                                image: 'http://localhost:3000/' + item.product.images[0],
                                 quantity: item.quantity,
-                                price: item.product.price,
-                                price_per_product: item.quantity * item.product.price
+                                price_no_format: item.product.price,
+                                price: new Intl.NumberFormat('de-DE',{style: 'currency', currency: 'VND'}).format(item.product.price),
+                                price_per_product:  new Intl.NumberFormat('de-DE',{style: 'currency', currency: 'VND'}).format(item.quantity * item.product.price)
                             }
                         }),
-                        total_price: cart.items.reduce((total, item) => total + item.product.price*item.quantity,0)
+                        total_quantity: cart.items.reduce((total, item) => total+item.quantity,0),
+                        total_price:  new Intl.NumberFormat('de-DE',{style: 'currency', currency: 'VND'}).format(cart.items.reduce((total, item) => total + item.product.price*item.quantity,0)) 
                     }
                 })
             }
         })
         .catch(err => {
-            res.status(500).json({
-                message: 'error',
-                error: err
+            res.json({
+                success: false,
+                message: err
             })
         });
+})
+
+// Change quantity of Cart item
+router.post('/update', checkToken, (req, res) => {
+    _idProduct = req.body._idProduct;
+    quantity = req.body.quantity;
+    Cart
+    .findOne({user: req.decoded.userId})
+    .exec()
+    .then(cart => {
+        let existItem = cart.items.filter(item => item.product == _idProduct)[0];
+        if(existItem){
+            existItem.quantity = quantity;
+            cart.save().then(
+                result => {
+                    res.json({
+                        success: true,
+                        cart: result
+                    })
+                }
+            ).catch(err => {
+                res.json({
+                    success: false,
+                    message: err
+                })
+            });
+        }
+        else{
+            res.json({
+                success: false,
+                message: 'No item with that ID in cart'
+            })
+        }
+    })
+    .catch(err => {
+        res.json({
+            success: false,
+            message: err
+        })
+    })
+})
+
+// Delete product from Cart
+router.post('/delete',checkToken, (req, res) => {
+    _idProduct = req.body._idProduct;
+    Cart
+    .findOne({user: req.decoded.userId})
+    .exec()
+    .then(cart => {
+        FoundItemIndex = cart.items.findIndex(item => item.product._id = _idProduct);
+        if(FoundItemIndex < 0){
+            // Not Found
+            res.json({
+                success: false,
+                message: 'Product not found'
+            })
+        }
+        else{
+            cart.items.splice(FoundItemIndex, 1);
+            cart.save().then(result=>{
+                res.json({
+                    success: true,
+                    message: 'Delete successfully',
+                    cart: cart
+                })
+            }).catch( err => {
+                res.json({
+                    success: false,
+                    message: err
+                })
+            });
+        }
+    })
+    .catch(err =>{
+        res.json({
+            success: false,
+            message: err
+        })
+    });
+})
+
+// Clear item in Cart 
+router.get('/clear', checkToken,(req,res)=>{
+    Cart
+    .findOneAndUpdate({user: req.decoded.userId}, {items:[]})
+    .exec()
+    .then(result => {
+        res.json({
+            success: true,
+            message: 'Clear Cart Successfully'
+        })
+    })
+    .catch(err => {
+        res.json({
+            success: false,
+            message: err
+        })
+    })
 })
 
 router.get('/all', (req, res) => {
@@ -113,5 +195,7 @@ router.get('/all', (req, res) => {
             res.json(result)
         }).catch();
 })
+
+
 
 module.exports = router;

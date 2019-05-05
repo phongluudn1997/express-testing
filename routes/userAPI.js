@@ -13,9 +13,9 @@ var bcrypt = require('bcrypt');
 function checkToken(req, res, next) {
     let token = req.headers.authorization; // Express headers are auto converted to lowercase
     if (token) {
-        if (token.startsWith('Bearer ')) {
-            // Remove Bearer from string, it will return Bearer + token
-            token = token.split(' ')[2];
+        if (token.startsWith('Bearer')) {
+            // Remove Bearer from string, it will return Bearer token
+            token = token.split(' ')[1];
         }
         jwt.verify(token, 'secretKey', (err, decoded) => {
             if (err) {
@@ -55,7 +55,10 @@ router.post('/register', (req, res, next) => {
                     const user = new User({
                         email: req.body.email,
                         password: hash,
-                        user_role: req.body.user_role
+                        user_role: req.body.user_role,
+                        fullName: req.body.fullName,
+                        phoneNumber: req.body.phoneNumber,
+                        address: req.body.address
                     });
 
                     user.save().then(result => {
@@ -82,7 +85,10 @@ router.post('/register', (req, res, next) => {
                                 _id: result._id,
                                 email: result.email,
                                 password: result.password,
-                                user_role: result.user_role
+                                user_role: result.user_role,
+                                fullName: result.user.fullName,
+                                phoneNumber: result.user.phoneNumber,
+                                address: result.user.address
                             }
                         })
                     }).catch(err => {
@@ -110,11 +116,15 @@ router.post('/login', (req, res) => {
         }
         else {
             if (!userOutput) {
-                res.status(400).json('No user with that email')
+                res.status(200).json({
+                    message: 'error',
+                    err: "No user with that email"
+                })
             }
             else {
                 bcrypt.compare(req.body.password, userOutput.password, (err, same) => {
-                    if (err) res.status(401).json({
+                    if (err) res.status(200).json({
+                        message: "Error",
                         error: err
                     })
                     if (same) {
@@ -126,8 +136,9 @@ router.post('/login', (req, res) => {
                         })
                     }
                     else {
-                        res.status(401).json({
-                            message: "Wrong password"
+                        res.status(200).json({
+                            message: 'error',
+                            err: "Wrong password"
                         })
                     }
                 })
@@ -166,11 +177,68 @@ router.get('/', (req, res) => {
                         user_email: user.email,
                         user_password: user.password,
                         user_role: user.user_role.name_role,
-                        user_permissions: user.user_role.permissions.map(per => per.action_name)
+                        user_permissions: user.user_role.permissions.map(per => per.action_name),
+                        user_fullName: user.fullName,
+                        user_address: user.address,
+                        user_phoneNumber: user.phoneNumber
                     }
                 })
             })
         })
+})
+
+// Get information of a User
+router.get('/:_id', (req, res) => {
+    let _id = req.params._id;
+    User
+        .findOne({ _id: _id })
+        .populate('user_role')
+        .exec()
+        .then(user => {
+            res.status(200).json({
+                message: 'success',
+                user: {
+                    email: user.email,
+                    role: user.user_role.name_role,
+                    fullName: user.fullName,
+                    address: user.address,
+                    phoneNumber: user.phoneNumber
+                }
+            })
+        })
+        .catch(err => {
+            res.status(200).json({
+                message: 'error',
+                error: err
+            })
+        });
+})
+
+// Update User Info
+router.put('/update', checkToken, (req, res) => {
+    _idUser = req.decoded.userId;
+    console.log(_idUser)
+    User.findOneAndUpdate({_id: _idUser}, req.body, (err, user) => {
+        if(err){
+            res.json({
+                success: false,
+                message: err
+            })
+        } else {
+            res.json({
+                success: true,
+                message: 'Update successfully',
+                user: {
+                    _id: user._id,
+                    email: user.email,
+                    password: user.password,
+                    fullName: user.fullName,
+                    address: user.address,
+                    phoneNumber: user.phoneNumber
+                },
+            })
+        }
+    })
 })
 
 

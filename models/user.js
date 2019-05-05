@@ -11,11 +11,24 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    fullName: {
+        type: String,
+    },
+    phoneNumber: {
+        type: Number,
+    },
+    address: {
+        type: String,
+    },
     user_role: {
-        type: mongoose.Schema.Types.ObjectId, 
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Role',
         required: true,
         default: '5cb72bf9edf6ea1b7cee748a' // Customer
+    },
+    cart: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Cart',
     }
 })
 
