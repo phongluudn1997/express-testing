@@ -1,10 +1,7 @@
 var express = require("express");
 var router = express.Router();
 
-var Cart = require("../models/cart");
 var User = require("../models/user");
-var Role = require("../models/role");
-var Permission = require("../models/permission");
 var jwt = require("jsonwebtoken");
 
 var bcrypt = require("bcrypt");
