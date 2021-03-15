@@ -20,15 +20,6 @@ const userSchema = mongoose.Schema({
   address: {
     type: String,
   },
-  user_role: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Role",
-    required: true,
-  },
-  cart: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Cart",
-  },
 });
 
 module.exports = mongoose.model("User", userSchema, "users");
