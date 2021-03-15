@@ -57,9 +57,11 @@ router.post("/register", (req, res, next) => {
             user
               .save()
               .then((result) => {
+                const { _id } = result;
+                const token = jwt.sign({ userId: _id }, "secretKey");
                 res.status(201).json({
                   message: "User created",
-                  data: result,
+                  data: { token, user: result },
                 });
               })
               .catch((err) => {
@@ -79,7 +81,6 @@ router.post("/login", (req, res) => {
   let userInput = req.body;
   User.findOne({ email: userInput.email }, (err, userOutput) => {
     if (err) {
-      console.log(err);
       res.status(500).json({
         error: err,
       });
@@ -100,11 +101,13 @@ router.post("/login", (req, res) => {
             const token = jwt.sign({ userId: userOutput._id }, "secretKey");
             return res.status(200).json({
               message: "Auth successful",
-              token: token,
-              userId: userOutput._id,
+              data: {
+                token,
+                user: userOutput,
+              },
             });
           } else {
-            res.status(200).json({
+            res.status(400).json({
               message: "error",
               err: "Wrong password",
             });
@@ -125,14 +128,13 @@ router.delete("/:userId", (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
       res.status(500).json({
         error: err,
       });
     });
 });
 
-router.get("/me", checkToken, (req, res, next) => {
+router.get("/bootstrap", checkToken, (req, res, next) => {
   const { userId } = req.decoded;
   User.findById(userId)
     .then((user) =>
@@ -197,7 +199,6 @@ router.get("/:_id", (req, res) => {
 // Update User Info
 router.put("/update", checkToken, (req, res) => {
   _idUser = req.decoded.userId;
-  console.log(_idUser);
   User.findOneAndUpdate({ _id: _idUser }, req.body, (err, user) => {
     if (err) {
       res.json({
