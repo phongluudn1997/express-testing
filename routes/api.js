@@ -22,5 +22,6 @@ router.use("/roles", require("./roleAPI"));
 router.use("/orders", require("./orderAPI"));
 router.use("/cart", require("./cartAPI"));
 router.use("/categories", require("./categoryAPI"));
+router.use("/books", require("./bookAPI"));
 
 module.exports = router;

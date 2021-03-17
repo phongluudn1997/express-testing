@@ -6,7 +6,7 @@ const BookItem = mongoose.Schema({
   rating: Number,
   notes: String,
   finishDate: Date,
-  startData: Date,
+  startDate: Date,
 });
 
 module.exports = mongoose.model("BookItem", BookItem, "bookItems");
