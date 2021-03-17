@@ -12,5 +12,5 @@ app.use("/uploads", express.static("uploads"));
 
 app.use("/api", require("./routes/api"));
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3002;
 app.listen(port);
