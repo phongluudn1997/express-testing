@@ -23,5 +23,6 @@ router.use("/orders", require("./orderAPI"));
 router.use("/cart", require("./cartAPI"));
 router.use("/categories", require("./categoryAPI"));
 router.use("/books", require("./bookAPI"));
+router.use("/bookItems", require("./bookItemAPI"));
 
 module.exports = router;
